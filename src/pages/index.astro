@@ -2,12 +2,48 @@
 import Layout from '@/layouts/Layout.astro';
 import AlbumCard from '@/components/AlbumCard.astro';
 import MasonryGallery from '@/components/MasonryGallery.astro';
+import { client, useDummyData, urlFor } from '@/lib/sanity';
+import { siteSettingsQuery, featuredAlbumsQuery, allPhotosQuery } from '@/lib/queries';
 import { dummySiteSettings, dummyPhotos, getFeaturedAlbums } from '@/lib/dummy-data';
 import { shuffleArray } from '@/lib/utils';
 
-const settings = dummySiteSettings;
-const featuredAlbums = getFeaturedAlbums();
-const recentPhotos = shuffleArray(dummyPhotos).slice(0, 12);
+let settings: any = dummySiteSettings;
+let featuredAlbums: any[] = [];
+let recentPhotos: any[] = [];
+
+if (useDummyData) {
+  settings = dummySiteSettings;
+  featuredAlbums = getFeaturedAlbums();
+  recentPhotos = shuffleArray(dummyPhotos).slice(0, 12);
+} else {
+  try {
+    const [sanitySettings, sanityFeaturedAlbums, sanityPhotos] = await Promise.all([
+      client.fetch(siteSettingsQuery),
+      client.fetch(featuredAlbumsQuery),
+      client.fetch(allPhotosQuery)
+    ]);
+
+    settings = sanitySettings || dummySiteSettings;
+    if (settings.profileImage) {
+      settings.profileImage = urlFor(settings.profileImage).width(400).url();
+    }
+
+    featuredAlbums = sanityFeaturedAlbums.map((album: any) => ({
+      ...album,
+      coverImage: album.coverImage ? urlFor(album.coverImage).width(600).url() : ''
+    }));
+
+    recentPhotos = shuffleArray(sanityPhotos).slice(0, 12).map((photo: any) => ({
+      ...photo,
+      image: photo.image ? urlFor(photo.image).width(800).url() : ''
+    }));
+  } catch (error) {
+    console.error('Failed to fetch from Sanity:', error);
+    settings = dummySiteSettings;
+    featuredAlbums = getFeaturedAlbums();
+    recentPhotos = shuffleArray(dummyPhotos).slice(0, 12);
+  }
+}
 ---
 
 <Layout title="Home">
