@@ -1,0 +1,114 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { dummySiteSettings } from '@/lib/dummy-data';
+
+const settings = dummySiteSettings;
+---
+
+<Layout title="Contact">
+  <section class="contact-page">
+    <div class="container">
+      <header class="page-header">
+        <p class="subtle-text">Get in Touch</p>
+        <h1 class="display-heading">Contact</h1>
+        <p class="page-intro">Have a project in mind or just want to say hello? I'd love to hear from you.</p>
+      </header>
+
+      <div class="contact-grid">
+        <div class="contact-info">
+          <div class="contact-block">
+            <h3>Email</h3>
+            <a href={`mailto:${settings.email}`}>{settings.email}</a>
+          </div>
+          
+          {settings.phone && (
+            <div class="contact-block">
+              <h3>Phone</h3>
+              <a href={`tel:${settings.phone.replace(/\s/g, '')}`}>{settings.phone}</a>
+            </div>
+          )}
+          
+          <div class="contact-block">
+            <h3>Location</h3>
+            <p>{settings.location}</p>
+          </div>
+          
+          <div class="contact-block">
+            <h3>Follow</h3>
+            <div class="social-links">
+              {settings.social.instagram && (
+                <a href={settings.social.instagram} target="_blank" rel="noopener">Instagram</a>
+              )}
+              {settings.social.twitter && (
+                <a href={settings.social.twitter} target="_blank" rel="noopener">Twitter</a>
+              )}
+              {settings.social.behance && (
+                <a href={settings.social.behance} target="_blank" rel="noopener">Behance</a>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <form class="contact-form" id="contact-form">
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" required />
+          </div>
+          
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+          
+          <div class="form-group">
+            <label for="subject">Subject</label>
+            <select id="subject" name="subject">
+              <option value="general">General Enquiry</option>
+              <option value="portrait">Portrait Session</option>
+              <option value="wedding">Wedding Photography</option>
+              <option value="event">Event Coverage</option>
+              <option value="commercial">Commercial Project</option>
+              <option value="prints">Print Purchase</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="6" required></textarea>
+          </div>
+          
+          <button type="submit" class="btn btn--primary">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .contact-page { padding: 10rem 0 6rem; }
+  .page-header { text-align: center; max-width: 600px; margin: 0 auto 4rem; }
+  .page-header .subtle-text { margin-bottom: 0.5rem; }
+  .page-intro { font-size: 1.125rem; color: #666; margin-top: 1.5rem; }
+  .contact-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 4rem; max-width: 1000px; margin: 0 auto; }
+  .contact-block { margin-bottom: 2rem; }
+  .contact-block h3 { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: #888; margin-bottom: 0.75rem; }
+  .contact-block a, .contact-block p { font-size: 1.0625rem; color: #1a1a1a; }
+  .contact-block a { transition: color 0.2s; }
+  .contact-block a:hover { color: #666; }
+  .social-links { display: flex; flex-direction: column; gap: 0.5rem; }
+  .contact-form { background: #f8f8f8; padding: 3rem; border-radius: 8px; }
+  .form-group { margin-bottom: 1.5rem; }
+  .form-group label { display: block; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem; color: #555; }
+  .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.875rem 1rem; font-size: 1rem; border: 1px solid #ddd; border-radius: 4px; background: #fff; transition: border-color 0.2s; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #1a1a1a; }
+  .form-group textarea { resize: vertical; min-height: 150px; }
+  @media (max-width: 768px) { .contact-page { padding: 8rem 0 4rem; } .contact-grid { grid-template-columns: 1fr; gap: 3rem; } .contact-form { padding: 2rem; } }
+</style>
+
+<script>
+  const form = document.getElementById('contact-form');
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    alert('Thank you for your message! This is a demo form - in production, this would send an email.');
+  });
+</script>

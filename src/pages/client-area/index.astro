@@ -1,0 +1,100 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { dummyClientGalleries } from '@/lib/dummy-data';
+
+const galleries = dummyClientGalleries;
+---
+
+<Layout title="Client Area">
+  <section class="client-page">
+    <div class="container container--narrow">
+      <header class="page-header">
+        <p class="subtle-text">Private Access</p>
+        <h1 class="section-heading">Client Area</h1>
+        <p class="page-intro">Access your private gallery with your event password.</p>
+      </header>
+
+      <form class="client-form" id="client-form">
+        <div class="form-group">
+          <label for="gallery-select">Select Your Gallery</label>
+          <select id="gallery-select" name="gallery" required>
+            <option value="">Choose your event...</option>
+            {galleries.map(gallery => (
+              <option value={gallery.slug} data-password={gallery.password}>
+                {gallery.clientName} - {gallery.eventName}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Enter your gallery password" required />
+        </div>
+        
+        <button type="submit" class="btn btn--primary btn--full">Access Gallery</button>
+        
+        <p class="form-hint">
+          <strong>Demo passwords:</strong><br />
+          Sarah & James: <code>love2024</code><br />
+          TechStart: <code>techstart2024</code><br />
+          Emma: <code>emma2024</code>
+        </p>
+      </form>
+
+      <div class="client-info">
+        <h3>How it works</h3>
+        <ol>
+          <li>Select your event from the dropdown menu</li>
+          <li>Enter the password provided to you</li>
+          <li>Browse and download your photos</li>
+        </ol>
+        <p>Can't find your gallery or forgot your password? <a href="/contact">Contact me</a> for assistance.</p>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .client-page { padding: 10rem 0 6rem; }
+  .page-header { text-align: center; margin-bottom: 3rem; }
+  .page-header .subtle-text { margin-bottom: 0.5rem; }
+  .page-intro { font-size: 1rem; color: #666; margin-top: 1rem; }
+  .client-form { background: #f8f8f8; padding: 2.5rem; border-radius: 8px; margin-bottom: 3rem; }
+  .form-group { margin-bottom: 1.5rem; }
+  .form-group label { display: block; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem; color: #555; }
+  .form-group input, .form-group select { width: 100%; padding: 0.875rem 1rem; font-size: 1rem; border: 1px solid #ddd; border-radius: 4px; background: #fff; }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: #1a1a1a; }
+  .btn--full { width: 100%; }
+  .form-hint { margin-top: 1.5rem; font-size: 0.8125rem; color: #888; text-align: center; }
+  .form-hint code { background: #fff; padding: 0.125rem 0.5rem; border-radius: 4px; font-family: monospace; }
+  .client-info { text-align: center; padding: 2rem; background: #fff; border: 1px solid #eee; border-radius: 8px; }
+  .client-info h3 { font-size: 1rem; margin-bottom: 1rem; }
+  .client-info ol { text-align: left; max-width: 300px; margin: 0 auto 1.5rem; padding-left: 1.25rem; color: #666; font-size: 0.9375rem; }
+  .client-info ol li { margin-bottom: 0.5rem; }
+  .client-info p { font-size: 0.875rem; color: #888; }
+  .client-info a { color: #1a1a1a; text-decoration: underline; }
+  @media (max-width: 600px) { .client-page { padding: 8rem 0 4rem; } .client-form { padding: 1.5rem; } }
+</style>
+
+<script>
+  const form = document.getElementById('client-form') as HTMLFormElement;
+  const gallerySelect = document.getElementById('gallery-select') as HTMLSelectElement;
+  const passwordInput = document.getElementById('password') as HTMLInputElement;
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const selectedOption = gallerySelect.options[gallerySelect.selectedIndex];
+    const correctPassword = selectedOption.dataset.password;
+    const enteredPassword = passwordInput.value;
+    
+    if (enteredPassword === correctPassword) {
+      // Store access in sessionStorage
+      sessionStorage.setItem('client_access_' + gallerySelect.value, 'true');
+      window.location.href = '/client-area/' + gallerySelect.value;
+    } else {
+      alert('Incorrect password. Please try again.');
+    }
+  });
+</script>

@@ -1,0 +1,183 @@
+---
+import type { Album } from '@/lib/dummy-data';
+import { formatDate } from '@/lib/utils';
+
+interface Props {
+  album: Album;
+  variant?: 'default' | 'featured' | 'compact';
+}
+
+const { album, variant = 'default' } = Astro.props;
+---
+
+<article class={`album-card album-card--${variant}`}>
+  <a href={`/album/${album.slug}`} class="album-card__link">
+    <div class="album-card__image">
+      <img src={album.coverImage} alt={album.title} loading="lazy" />
+      <div class="album-card__overlay">
+        <span class="album-card__view">View Album</span>
+      </div>
+    </div>
+    
+    <div class="album-card__content">
+      <span class="album-card__category">{album.category}</span>
+      <h3 class="album-card__title">{album.title}</h3>
+      {variant !== 'compact' && album.description && (
+        <p class="album-card__description">{album.description}</p>
+      )}
+      <div class="album-card__meta">
+        <span>{album.photoCount} photos</span>
+        {album.date && <span>{formatDate(album.date)}</span>}
+      </div>
+    </div>
+  </a>
+</article>
+
+<style>
+  .album-card {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  :global(.dark) .album-card {
+    background: #151515;
+  }
+  
+  .album-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  }
+  
+  .album-card__link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .album-card__image {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+  }
+  
+  .album-card__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  
+  .album-card:hover .album-card__image img {
+    transform: scale(1.08);
+  }
+  
+  .album-card__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+  }
+  
+  .album-card:hover .album-card__overlay {
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  .album-card__view {
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid #fff;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+  }
+  
+  .album-card:hover .album-card__view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .album-card__content {
+    padding: 1.5rem;
+  }
+  
+  .album-card__category {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 0.5rem;
+  }
+  
+  .album-card__title {
+    font-size: 1.375rem;
+    margin: 0 0 0.75rem;
+    line-height: 1.3;
+  }
+  
+  .album-card__description {
+    font-size: 0.9375rem;
+    color: #666;
+    line-height: 1.6;
+    margin: 0 0 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  :global(.dark) .album-card__description {
+    color: #999;
+  }
+  
+  .album-card__meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8125rem;
+    color: #999;
+  }
+  
+  /* Featured Variant */
+  .album-card--featured {
+    grid-column: span 2;
+  }
+  
+  .album-card--featured .album-card__image {
+    aspect-ratio: 16 / 9;
+  }
+  
+  .album-card--featured .album-card__title {
+    font-size: 1.75rem;
+  }
+  
+  /* Compact Variant */
+  .album-card--compact .album-card__content {
+    padding: 1rem;
+  }
+  
+  .album-card--compact .album-card__title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  @media (max-width: 768px) {
+    .album-card--featured {
+      grid-column: span 1;
+    }
+    
+    .album-card--featured .album-card__image {
+      aspect-ratio: 4 / 3;
+    }
+  }
+</style>

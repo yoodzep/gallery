@@ -1,0 +1,160 @@
+---
+import { dummySiteSettings } from '@/lib/dummy-data';
+
+const settings = dummySiteSettings;
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__inner">
+      <div class="footer__brand">
+        <a href="/" class="footer__logo">{settings.siteName}</a>
+        <p class="footer__tagline">{settings.tagline}</p>
+      </div>
+      
+      <div class="footer__links">
+        <div class="footer__column">
+          <h4>Explore</h4>
+          <ul>
+            <li><a href="/gallery">Gallery</a></li>
+            <li><a href="/albums">Albums</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/contact">Contact</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer__column">
+          <h4>Services</h4>
+          <ul>
+            <li><a href="/services/portraits">Portraits</a></li>
+            <li><a href="/services/events">Events</a></li>
+            <li><a href="/services/commercial">Commercial</a></li>
+            <li><a href="/services/prints">Prints</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer__column">
+          <h4>Connect</h4>
+          <ul class="footer__social">
+            {settings.social.instagram && (
+              <li>
+                <a href={settings.social.instagram} target="_blank" rel="noopener">Instagram</a>
+              </li>
+            )}
+            {settings.social.twitter && (
+              <li>
+                <a href={settings.social.twitter} target="_blank" rel="noopener">Twitter</a>
+              </li>
+            )}
+            {settings.social.behance && (
+              <li>
+                <a href={settings.social.behance} target="_blank" rel="noopener">Behance</a>
+              </li>
+            )}
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer__bottom">
+      <p>&copy; {currentYear} {settings.siteName}. All rights reserved.</p>
+      <p class="footer__location">{settings.location}</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: #1a1a1a;
+    color: #fff;
+    padding: 5rem 0 2rem;
+    margin-top: 6rem;
+  }
+  
+  .footer__inner {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 4rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .footer__logo {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.5rem;
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+  
+  .footer__tagline {
+    color: #888;
+    font-size: 0.9375rem;
+  }
+  
+  .footer__links {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+  
+  .footer__column h4 {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+    color: #888;
+  }
+  
+  .footer__column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .footer__column a {
+    display: block;
+    padding: 0.375rem 0;
+    color: #ccc;
+    font-size: 0.9375rem;
+    transition: color 0.2s;
+  }
+  
+  .footer__column a:hover {
+    color: #fff;
+  }
+  
+  .footer__bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 2rem;
+    font-size: 0.8125rem;
+    color: #666;
+  }
+  
+  @media (max-width: 900px) {
+    .footer__inner {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+    
+    .footer__links {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .footer__links {
+      grid-template-columns: 1fr;
+    }
+    
+    .footer__bottom {
+      flex-direction: column;
+      gap: 0.5rem;
+      text-align: center;
+    }
+  }
+</style>

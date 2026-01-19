@@ -1,0 +1,173 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import MasonryGallery from '@/components/MasonryGallery.astro';
+import { client, useDummyData, urlFor } from '@/lib/sanity';
+import { allPhotosQuery, allAlbumsQuery } from '@/lib/queries';
+import { dummyPhotos, getAllCategories, dummyAlbums } from '@/lib/dummy-data';
+
+let photos: any[] = [];
+let albums: any[] = [];
+let categories: string[] = [];
+
+if (useDummyData) {
+  photos = dummyPhotos;
+  albums = dummyAlbums;
+  categories = getAllCategories();
+} else {
+  try {
+    const [sanityPhotos, sanityAlbums] = await Promise.all([
+      client.fetch(allPhotosQuery),
+      client.fetch(allAlbumsQuery)
+    ]);
+    
+    // Convert Sanity image objects to URLs
+    photos = sanityPhotos.map((photo: any) => ({
+      ...photo,
+      image: photo.image ? urlFor(photo.image).width(800).url() : '',
+      album: photo.album ? {
+        ...photo.album,
+        coverImage: photo.album.coverImage ? urlFor(photo.album.coverImage).width(800).url() : ''
+      } : null
+    }));
+    
+    albums = sanityAlbums.map((album: any) => ({
+      ...album,
+      coverImage: album.coverImage ? urlFor(album.coverImage).width(800).url() : ''
+    }));
+    
+    categories = [...new Set(albums.map((a: any) => a.category))].sort();
+  } catch (error) {
+    console.error('Failed to fetch from Sanity:', error);
+    // Fallback to dummy data
+    photos = dummyPhotos;
+    albums = dummyAlbums;
+    categories = getAllCategories();
+  }
+}
+---
+
+<Layout title="Gallery">
+  <section class="gallery-page">
+    <div class="container container--wide">
+      <header class="page-header">
+        <p class="subtle-text">Portfolio</p>
+        <h1 class="display-heading">Gallery</h1>
+        <p class="page-intro">A curated selection of my finest work across various genres and locations.</p>
+      </header>
+
+      <div class="gallery-filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        {categories.map(category => (
+          <button class="filter-btn" data-filter={category.toLowerCase()}>{category}</button>
+        ))}
+      </div>
+
+      <div class="gallery-view-toggle">
+        <button class="view-btn active" data-view="masonry" aria-label="Masonry view">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/></svg>
+        </button>
+        <button class="view-btn" data-view="grid" aria-label="Grid view">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+        </button>
+      </div>
+
+      <div id="gallery-masonry">
+        <MasonryGallery photos={photos} columns={3} showInfo={true} />
+      </div>
+
+      <div id="gallery-grid" class="gallery-grid hidden">
+        {photos.map(photo => (
+          <div class="grid-item" data-category={albums.find(a => a.slug === photo.album?.slug)?.category.toLowerCase()}>
+            <a href="#" class="grid-item__link" data-src={photo.image} data-title={photo.title}>
+              <img src={photo.image} alt={photo.title} loading="lazy" />
+              <div class="grid-item__overlay">
+                <h3>{photo.title}</h3>
+                {photo.location && <p>{photo.location}</p>}
+              </div>
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .gallery-page { padding: 10rem 0 6rem; }
+  .page-header { text-align: center; max-width: 700px; margin: 0 auto 4rem; }
+  .page-header .subtle-text { margin-bottom: 0.5rem; }
+  .page-intro { font-size: 1.125rem; color: #666; margin-top: 1.5rem; line-height: 1.7; }
+  .gallery-filters { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+  .filter-btn { padding: 0.625rem 1.25rem; font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; background: transparent; border: 1px solid #ddd; cursor: pointer; transition: all 0.2s; }
+  .filter-btn:hover, .filter-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .gallery-view-toggle { display: flex; justify-content: flex-end; gap: 0.5rem; margin-bottom: 2rem; }
+  .view-btn { padding: 0.75rem; background: transparent; border: 1px solid #ddd; cursor: pointer; color: #888; transition: all 0.2s; }
+  .view-btn:hover, .view-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .hidden { display: none !important; }
+  .gallery-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+  .grid-item { position: relative; overflow: hidden; aspect-ratio: 1; border-radius: 4px; }
+  .grid-item__link { display: block; width: 100%; height: 100%; }
+  .grid-item__link img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .grid-item:hover img { transform: scale(1.08); }
+  .grid-item__overlay { position: absolute; inset: 0; background: rgba(0,0,0,0); display: flex; flex-direction: column; justify-content: flex-end; padding: 1.5rem; transition: background 0.3s; }
+  .grid-item:hover .grid-item__overlay { background: rgba(0,0,0,0.4); }
+  .grid-item__overlay h3, .grid-item__overlay p { color: #fff; opacity: 0; transform: translateY(10px); transition: all 0.3s; }
+  .grid-item:hover .grid-item__overlay h3, .grid-item:hover .grid-item__overlay p { opacity: 1; transform: translateY(0); }
+  .grid-item__overlay h3 { font-size: 1rem; margin-bottom: 0.25rem; }
+  .grid-item__overlay p { font-size: 0.8125rem; opacity: 0.8; }
+  @media (max-width: 1200px) { .gallery-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 900px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .gallery-page { padding: 8rem 0 4rem; } .gallery-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const viewBtns = document.querySelectorAll('.view-btn');
+  const masonryView = document.getElementById('gallery-masonry');
+  const gridView = document.getElementById('gallery-grid');
+  const gridItems = document.querySelectorAll('.grid-item');
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      gridItems.forEach(item => {
+        if (filter === 'all' || item.dataset.category === filter) {
+          item.style.display = '';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  viewBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      viewBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (btn.dataset.view === 'masonry') {
+        masonryView?.classList.remove('hidden');
+        gridView?.classList.add('hidden');
+      } else {
+        masonryView?.classList.add('hidden');
+        gridView?.classList.remove('hidden');
+      }
+    });
+  });
+
+  // Lightbox for grid view
+  const images = Array.from(gridItems).map(item => ({
+    src: item.querySelector('a')?.dataset.src || '',
+    title: item.querySelector('a')?.dataset.title || ''
+  }));
+  
+  gridItems.forEach((item, index) => {
+    item.querySelector('a')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (typeof (window as any).openLightbox === 'function') {
+        (window as any).openLightbox(images, index);
+      }
+    });
+  });
+</script>

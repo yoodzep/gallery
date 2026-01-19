@@ -1,0 +1,185 @@
+---
+import type { Photo } from '@/lib/dummy-data';
+
+interface Props {
+  photos: Photo[];
+  columns?: 2 | 3 | 4;
+  showInfo?: boolean;
+  enableLightbox?: boolean;
+}
+
+const { 
+  photos, 
+  columns = 3, 
+  showInfo = false,
+  enableLightbox = true 
+} = Astro.props;
+
+const galleryId = `gallery-${Math.random().toString(36).substr(2, 9)}`;
+---
+
+<div class={`masonry-gallery masonry-gallery--${columns}col`} id={galleryId} data-lightbox={enableLightbox}>
+  {photos.map((photo, index) => (
+    <div class="masonry-item" data-index={index}>
+      <a 
+        href={enableLightbox ? '#' : `/photo/${photo.slug}`}
+        class="masonry-item__link"
+        data-src={photo.image}
+        data-title={photo.title}
+        data-meta={photo.location || ''}
+      >
+        <img 
+          src={photo.image} 
+          alt={photo.title}
+          loading="lazy"
+          class="masonry-item__image"
+        />
+        <div class="masonry-item__overlay">
+          {showInfo && (
+            <div class="masonry-item__info">
+              <h3>{photo.title}</h3>
+              {photo.location && <p>{photo.location}</p>}
+            </div>
+          )}
+          <div class="masonry-item__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            </svg>
+          </div>
+        </div>
+      </a>
+    </div>
+  ))}
+</div>
+
+<style>
+  .masonry-gallery {
+    columns: 3;
+    column-gap: 1rem;
+  }
+  
+  .masonry-gallery--2col {
+    columns: 2;
+  }
+  
+  .masonry-gallery--4col {
+    columns: 4;
+  }
+  
+  .masonry-item {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+  
+  .masonry-item__link {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+  }
+  
+  .masonry-item__image {
+    width: 100%;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+  
+  .masonry-item__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1.5rem;
+    transition: background 0.3s ease;
+  }
+  
+  .masonry-item__link:hover .masonry-item__overlay {
+    background: rgba(0, 0, 0, 0.4);
+  }
+  
+  .masonry-item__link:hover .masonry-item__image {
+    transform: scale(1.05);
+  }
+  
+  .masonry-item__info {
+    color: #fff;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+  
+  .masonry-item__link:hover .masonry-item__info {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  
+  .masonry-item__info h3 {
+    font-size: 1.125rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .masonry-item__info p {
+    font-size: 0.8125rem;
+    opacity: 0.8;
+  }
+  
+  .masonry-item__icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    color: #fff;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+  }
+  
+  .masonry-item__link:hover .masonry-item__icon {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  @media (max-width: 1200px) {
+    .masonry-gallery--4col {
+      columns: 3;
+    }
+  }
+  
+  @media (max-width: 900px) {
+    .masonry-gallery,
+    .masonry-gallery--4col {
+      columns: 2;
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .masonry-gallery,
+    .masonry-gallery--2col,
+    .masonry-gallery--4col {
+      columns: 1;
+    }
+  }
+</style>
+
+<script define:vars={{ galleryId, enableLightbox }}>
+  if (enableLightbox) {
+    const gallery = document.getElementById(galleryId);
+    const items = gallery?.querySelectorAll('.masonry-item__link');
+    
+    const images = Array.from(items || []).map(item => ({
+      src: item.dataset.src,
+      title: item.dataset.title,
+      meta: item.dataset.meta
+    }));
+    
+    items?.forEach((item, index) => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof window.openLightbox === 'function') {
+          window.openLightbox(images, index);
+        }
+      });
+    });
+  }
+</script>

@@ -1,0 +1,120 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import MasonryGallery from '@/components/MasonryGallery.astro';
+import { client, useDummyData, urlFor } from '@/lib/sanity';
+import { albumBySlugQuery, albumSlugsQuery } from '@/lib/queries';
+import { dummyAlbums, getPhotosByAlbum } from '@/lib/dummy-data';
+import { formatDate } from '@/lib/utils';
+
+export async function getStaticPaths() {
+  if (useDummyData) {
+    return dummyAlbums.map(album => ({
+      params: { slug: album.slug },
+      props: { album }
+    }));
+  }
+
+  try {
+    const slugs = await client.fetch(albumSlugsQuery);
+    return slugs.map((item: any) => ({
+      params: { slug: item.slug },
+      props: {}
+    }));
+  } catch (error) {
+    console.error('Failed to fetch album slugs:', error);
+    return dummyAlbums.map(album => ({
+      params: { slug: album.slug },
+      props: { album }
+    }));
+  }
+}
+
+const { slug } = Astro.params;
+let album: any = null;
+let photos: any[] = [];
+
+if (useDummyData) {
+  album = dummyAlbums.find(a => a.slug === slug);
+  photos = getPhotosByAlbum(slug || '');
+} else {
+  try {
+    const data = await client.fetch(albumBySlugQuery, { slug });
+    if (data) {
+      album = {
+        ...data,
+        coverImage: data.coverImage ? urlFor(data.coverImage).width(1200).url() : ''
+      };
+      photos = data.photos?.map((photo: any) => ({
+        ...photo,
+        image: photo.image ? urlFor(photo.image).width(800).url() : ''
+      })) || [];
+    }
+  } catch (error) {
+    console.error('Failed to fetch album:', error);
+    album = dummyAlbums.find(a => a.slug === slug);
+    photos = getPhotosByAlbum(slug || '');
+  }
+}
+
+// Get more photos for demo (in real app, these would come from Sanity)
+const allPhotos = [...photos];
+if (allPhotos.length < 8 && useDummyData) {
+  const extraPhotos = dummyAlbums
+    .filter(a => a.category === album?.category && a.slug !== album?.slug)
+    .flatMap(a => getPhotosByAlbum(a.slug))
+    .slice(0, 10 - allPhotos.length);
+  allPhotos.push(...extraPhotos);
+}
+---
+
+<Layout title={album?.title} description={album?.description} image={album?.coverImage}>
+  <section class="album-page">
+    <header class="album-header">
+      <div class="album-header__background">
+        <img src={album?.coverImage} alt="" />
+        <div class="album-header__overlay"></div>
+      </div>
+      <div class="container">
+        <div class="album-header__content">
+          <a href="/albums" class="album-header__back">← Back to Albums</a>
+          <p class="subtle-text">{album?.category}</p>
+          <h1 class="display-heading">{album?.title}</h1>
+          {album?.description && <p class="album-header__description">{album?.description}</p>}
+          <div class="album-header__meta">
+            <span>{album?.photoCount || allPhotos.length} photos</span>
+            {album?.date && <span>{formatDate(album?.date)}</span>}
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="album-content">
+      <div class="container container--wide">
+        <MasonryGallery photos={allPhotos} columns={3} showInfo={true} />
+      </div>
+    </div>
+
+    <div class="album-nav">
+      <div class="container">
+        <a href="/albums" class="btn btn--outline">← View All Albums</a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .album-page { padding-top: 80px; }
+  .album-header { position: relative; min-height: 60vh; display: flex; align-items: flex-end; color: #fff; padding: 4rem 0; }
+  .album-header__background { position: absolute; inset: 0; z-index: -1; }
+  .album-header__background img { width: 100%; height: 100%; object-fit: cover; }
+  .album-header__overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%); }
+  .album-header__content { max-width: 700px; }
+  .album-header__back { display: inline-block; font-size: 0.8125rem; color: rgba(255,255,255,0.8); margin-bottom: 1.5rem; transition: color 0.2s; }
+  .album-header__back:hover { color: #fff; }
+  .album-header__content .subtle-text { margin-bottom: 0.5rem; color: rgba(255,255,255,0.7); }
+  .album-header__description { font-size: 1.125rem; line-height: 1.7; margin: 1.5rem 0; opacity: 0.9; }
+  .album-header__meta { display: flex; gap: 1.5rem; font-size: 0.9375rem; opacity: 0.8; }
+  .album-content { padding: 4rem 0; }
+  .album-nav { padding-bottom: 4rem; }
+  @media (max-width: 768px) { .album-header { min-height: 50vh; } }
+</style>
